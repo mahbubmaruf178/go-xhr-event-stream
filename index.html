@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>XHR Server Stream Example</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        padding: 20px;
+      }
+      #messages {
+        margin-top: 20px;
+        border: 1px solid #ccc;
+        padding: 10px;
+        height: 300px;
+        overflow-y: auto;
+        background-color: #f9f9f9;
+      }
+      .message {
+        padding: 5px;
+        margin: 5px 0;
+        background-color: #e0f7fa;
+        border-radius: 5px;
+      }
+      button {
+        margin-top: 20px;
+        padding: 10px 20px;
+        background-color: #ff5733;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+      button:hover {
+        background-color: #c44d2d;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>XHR Server Stream Example</h1>
+    <div id="messages"></div>
+    <button id="stopButton">Stop Stream</button>
+
+    <script>
+      // Select the div where messages will be displayed
+      const messagesDiv = document.getElementById("messages");
+      const stopButton = document.getElementById("stopButton");
+      let xhr; // Declare the XMLHttpRequest variable
+
+      // Function to start the XHR stream
+      function startStream() {
+        xhr = new XMLHttpRequest();
+        xhr.open("GET", "/events", true);
+        xhr.setRequestHeader("Cache-Control", "no-cache");
+
+        // Response is processed as text
+        xhr.onreadystatechange = function () {
+          if (xhr.readyState === XMLHttpRequest.LOADING && xhr.status === 200) {
+            // Split the response into individual messages
+            const messages = xhr.responseText.split("\n");
+            for (let i = 0; i < messages.length; i++) {
+              if (messages[i].trim() !== "") {
+                const messageDiv = document.createElement("div");
+                messageDiv.classList.add("message");
+                messageDiv.textContent = messages[i].trim();
+
+                // Append the new message to the messages div
+                messagesDiv.appendChild(messageDiv);
+
+                // Scroll to the bottom of the div to show the latest message
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+              }
+            }
+          }
+        };
+
+        // Handle errors and disconnection
+        xhr.onerror = function () {
+          console.error("Error occurred during the stream.");
+        };
+
+        xhr.send(); // Send the request to start the stream
+      }
+
+      // Function to stop the XHR stream
+      function stopStream() {
+        if (xhr) {
+          xhr.abort(); // Terminate the XHR connection
+          stopButton.disabled = true; // Disable the button after stopping the stream
+          stopButton.textContent = "Stream Stopped"; // Change button text
+        }
+      }
+
+      // Add an event listener to the stop button
+      stopButton.addEventListener("click", stopStream);
+
+      // Start the XHR stream
+      startStream();
+    </script>
+  </body>
+</html>
